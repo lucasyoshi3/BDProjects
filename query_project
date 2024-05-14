@@ -1,0 +1,96 @@
+CREATE DATABASE project
+
+CREATE TABLE users(
+	id				INTEGER					NOT NULL			IDENTITY(1,1),
+	name			VARCHAR(45)				NOT NULL,
+	username		VARCHAR(45)				NOT NULL			UNIQUE,
+	password		VARCHAR(45)				NOT NULL			DEFAULT('123mudar'),
+	email			VARCHAR(45)				NOT NULL,
+	PRIMARY KEY(id)
+)
+
+CREATE TABLE projects(
+	id				INTEGER					NOT NULL			IDENTITY(10001,1),
+	name			VARCHAR(45)				NOT NULL,
+	description		VARCHAR(45)				NOT NULL,
+	date			DATE					NOT NULL			CHECK(date>'2014-09-01'),
+	PRIMARY KEY(id)
+)
+
+CREATE TABLE users_has_project(
+	users_id		INTEGER,
+	projects_id		INTEGER,
+	FOREIGN KEY(users_id) REFERENCES users(id),
+	FOREIGN KEY(projects_id) REFERENCES projects(id),
+	PRIMARY KEY(users_id, projects_id)
+)
+
+ALTER TABLE users
+ALTER COLUMN password	VARCHAR(8);
+
+ALTER TABLE users
+DROP CONSTRAINT UQ__users__F3DBC5726E2AFD09;
+
+ALTER TABLE users
+ALTER COLUMN username VARCHAR(10);
+
+ALTER TABLE users
+ADD CONSTRAINT UQ__users__F3DBC5726E2AFD09 UNIQUE (username);
+
+
+INSERT INTO users(name, username, password,email)
+VALUES 
+('Paulo', 'Ti_paulo', '123@456','paulo@empresa.com'),
+('Ana', 'Rh_ana', '123mudar', 'ana@empresa.com'),
+('Clara', 'Ti_clara', '123mudar', 'clara@empresa.com'),
+('Aparecido', 'Rh_apareci', '55@!cido', 'aparecido@empresa.com');
+
+INSERT INTO projects(name,description,[date])
+VALUES 
+('Re-folha', 'Refatoração das Folhas', '2014-09-05'),
+('Manutenção PC''s', 'Manutenção PC''s', '2014-09-06'),
+('Auditoria', 'NULL', '2014-09-07');
+
+INSERT INTO users_has_project 
+VALUES
+(1, 10001),
+(5, 10001),
+(3, 10003),
+(4, 10002),
+(2, 10002);
+
+UPDATE projects 
+SET [date] = '2014-09-12'
+WHERE id =10002;
+
+UPDATE users 
+SET username = 'Rh_cido'
+WHERE id = 5;
+
+UPDATE users 
+SET password = '888@*'
+WHERE username = 'Rh_maria';
+
+DELETE FROM users_has_project 
+WHERE users_id = 2;
+
+SELECT id,name,email,username, 
+CASE 
+	WHEN password <> '123mudar' THEN '********'
+	ELSE password
+END
+FROM users u 
+
+SELECT p.name, p.description, p.[date], DATEADD(day,15, date) AS data_final FROM projects p
+JOIN users_has_project uhp ON p.id=uhp.projects_id 
+JOIN users u ON u.id = uhp.users_id  
+WHERE u.email ='aparecido@empresa.com' AND p.id=10001;
+
+SELECT u.name, u.email FROM users u 
+JOIN users_has_project uhp ON u.id = uhp.users_id  
+JOIN projects p ON p.id  = uhp.projects_id 
+WHERE p.name ='Auditoria'
+
+SELECT p.name , p.description , p.date,'2014-09-16' as data_final, 
+		DATEDIFF(day, p.date,'2014-09-16' ) *  79.85 as custo_total FROM projects p 
+WHERE p.name LIKE 'Manutenção%'
